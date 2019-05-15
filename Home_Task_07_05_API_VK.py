@@ -14,23 +14,19 @@ auth_data = {
 }
 # print('?'.join((BASE_URL, urlencode(auth_data))))
 
-TOKEN_friends_tatiana_job = '3fa953cc44e68ebafe377963e13cc32fe20df17a0ce3cefc39dc3a29320d14c0a303dd3e00c62ed8f5f79'
-# TOKEN_friends_tatiana = '1a88cb1b058babee3d7406a253fb9a39e52d6e6895ccee46d12b627988110716831b698f075d17c5b23e1'
-# TOKEN_status_agnia = '37b1cce19f73d918b8abeb6fc0401f56ec8d182c7473edc510698be31c1332864afe111a8195711100cd7'
-# TOKEN_friends_agnia = 'fba939b6154ca9c6d1a1ebbe1fdeb8a37a72a6479170b672b84779cd9eed04a896be37ea2125a1a0507f1'
-#
+# TOKEN_friends_tatiana_job = '3fa953cc44e68ebafe377963e13cc32fe20df17a0ce3cefc39dc3a29320d14c0a303dd3e00c62ed8f5f79'
+TOKEN_friends_tatiana = 'ca5ac1c6fae87df133c4adb356b924c0c8e1f6c7f1abee56a7e98ae00bf3333e1dc6ad7a3d8ac06ef5d82'
+
+## Блок для проверки работы токена
 # params = {
-#     'access_token': TOKEN_friends_tatiana_job,
+#     'access_token': TOKEN_friends_tatiana,
 #     'v': '5.95',
-#     'target_uid': '544755074',
-#
+#     'target_uid': '544755074'
 # }
 # response = requests.get('https://api.vk.com/method/friends.getMutual', params)
 # pprint(response.json())
 
-
 class User:
-
     def __init__(self, token, user_fio='Маша Золотова', user_id=None):
         self.token = token
         self.user_id = user_id
@@ -43,6 +39,13 @@ class User:
             target_uid=self.user_id,
             q=self.user_fio,
             fields='screen_name'
+        )
+
+    def get_params_2(self):
+        return dict(
+            access_token=self.token,
+            v='5.95',
+            count='1000'
         )
 
     # Ищем ID введенного пользователя среди друзей и подставляем в self.user_id. необходимо для params
@@ -63,19 +66,39 @@ class User:
         self.friends_search()
         params = self.get_params()
         response = requests.get('https://api.vk.com/method/friends.getMutual', params)
-        return response.json()['response']
+        shared_id = response.json()['response']
+
+        # Расширим информацию об общих друзьях, добавив к найденым ID Имя и Фамилию
+        params = self.get_params_2()
+        response_2 = requests.get('https://api.vk.com/method/friends.search', params)
+        friends_list = response_2.json()['response']['items']
+
+        for friends in friends_list:
+            for id in shared_id:
+                if id == friends['id']:
+                    print(friends['first_name'], friends['last_name'], 'id =', friends['id'])
 
     # Для задачи 2
     def __and__(self, other):
-        return self.get_shared_friends()
+        self.get_shared_friends()
+
+    # Для задачи 3
+    def __str__(self):
+        self.get_link()
 
 
-user_2 = input('Введите имя и фамилию одного из ваших друзей для отображения ID ваших общих друзей: ')
-tatiana = User(TOKEN_friends_tatiana_job, user_fio=user_2)
-pprint('ID общих друзей: {}'.format(tatiana & user_2))
+# Для задачи 2
+user_2 = input('Введите имя и фамилию одного из ваших друзей для отображения ваших общих друзей: ')
+tatiana = User(TOKEN_friends_tatiana, user_fio=user_2)
+tatiana & user_2
 
+# Для задачи 3
 user_2 = input('Введите любые имя и фамилию для получения ссылки: ')
-tatiana = User(TOKEN_friends_tatiana_job, user_fio=user_2)
-tatiana.get_link()
+user_2 = User(TOKEN_friends_tatiana, user_fio=user_2)
+
+try:
+    print(user_2)
+except TypeError as e:
+    print('Представлены все найденые результаты поиска')
 
 
