@@ -58,19 +58,17 @@ class User:
                     pprint('OK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
                     break
                 pprint(group['name'])
-                pprint(response.json())
-                time.sleep(0.9)
-        print(groups_with_friends_list)
+                time.sleep(3)
+        print(groups_with_friends_list) #['Новые Альбомы', 'Другая Музыка', 'Depeche Mode', 'E:\\music\\trip-hop']
         return groups_with_friends_list
 
     def write_to_file(self):
         groups = self.get_groups()
         groups_with_friends_list = self.search_for_friends_in_the_group()
-        for group_list in groups_with_friends_list:
-            for group in groups:
-                if group_list != group['name']:
-                    with open('groups.json', 'a') as f:
-                        json.dump(group, f, ensure_ascii=False, indent=2)
+        for group in groups:
+            if group['name'] not in groups_with_friends_list:
+                with open('groups.json', 'a') as f:
+                    json.dump(group, f, ensure_ascii=False, indent=2)
 
 
 # user_input = input('Введите имя и фамилию одного из ваших друзей для отображения ваших общих друзей: ')
